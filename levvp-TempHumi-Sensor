@@ -1,0 +1,69 @@
+metadata {
+    definition (
+    name: "levvp Temp/Humi Sensor",
+    namespace: "levvp",
+    author: "levvp" )
+    {
+        capability "Sensor"
+		capability "Refresh"
+		capability "Temperature Measurement"
+		capability "RelativeHumidity Measurement"
+        attribute "temperature", "float"
+        attribute "relativehumidity", "float"
+    }
+	preferences{
+		section{
+		    input( type: "string", name: "NodeURL", title: "Node URL", required: true, defaultValue: "192.168.7.2" )
+		    input( type: "enum", name: "RefreshRate", title: "Data Refresh Rate (in minutes)", required: true, multiple: false, options: [ [ "1" : "1" ], [ "5" : "5" ] ], defaultValue: "1" )
+		    input( type: "string", name: "SensorNo", title: "Sensor Number", required: true, defaultValue: "0" )
+		}
+	}
+}
+
+def installed()
+{
+    updated()
+}
+
+def updated(){
+    asynchttpGet( "GetList", [ uri: "${NodeURL}/sensors", contentType: "text/plain" ] )
+    unschedule()
+	if( RefreshRate == "1" ){
+		runEvery1Minute( refresh )
+	}
+	if( RefreshRate == "5" ){
+		runEvery5Minutes( refresh )
+	}
+    refresh()
+}
+
+def refresh() {
+    asynchttpGet( "GetTempData", [ uri: "${NodeURL}/sensor/temp/${SensorNo}", contentType: "text/plain" ] )
+    asynchttpGet( "GetHumiData", [ uri: "${NodeURL}/sensor/humi/${SensorNo}", contentType: "text/plain" ] )
+}
+
+def GetList( resp, data ) {
+	if( resp.getStatus() == 200 ) {
+        state.Sensors = resp.data
+	} else {
+        log.error "${device.displayName} Error connecting: ${resp.status}"
+	}
+}
+
+def GetTempData( resp, data ) {
+	if( resp.getStatus() == 200 ) {
+        state.ResponseTemp = resp.data
+        sendEvent( name: "temperature", value: resp.data.toFloat(), unit: location.getTemperatureScale() )
+	} else {
+        log.error "${device.displayName} Error connecting: ${resp.status}"
+	}
+}
+
+def GetHumiData( resp, data ) {
+	if( resp.getStatus() == 200 ) {
+        state.ResponseHumi = resp.data
+	    sendEvent( name: "relativehumidity", value: resp.data.toFloat() )
+	} else {
+		log.error "${device.displayName} Error connecting: ${resp.status}"
+	}
+}
