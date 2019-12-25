@@ -38,11 +38,14 @@ def updated(){
 }
 
 def refresh() {
-    asynchttpGet( "GetTempData", [ uri: "${NodeURL}/sensor/temp/${SensorNo}", contentType: "text/plain" ] )
-    asynchttpGet( "GetHumiData", [ uri: "${NodeURL}/sensor/humi/${SensorNo}", contentType: "text/plain" ] )
+    asynchttpGet( "GetTempData", [ uri: "${NodeURL}/sensor/temp/${SensorNo}" ] )
+    asynchttpGet( "GetHumiData", [ uri: "${NodeURL}/sensor/humi/${SensorNo}" ] )
 }
 
 def GetList( resp, data ) {
+	if (resp == null || resp.class != hubitat.scheduling.AsyncResponse) {
+		return
+	}
 	if( resp.getStatus() == 200 ) {
         state.Sensors = resp.data
 	} else {
@@ -51,6 +54,9 @@ def GetList( resp, data ) {
 }
 
 def GetTempData( resp, data ) {
+	if (resp == null || resp.class != hubitat.scheduling.AsyncResponse) {
+		return
+	}
 	if( resp.getStatus() == 200 ) {
         state.ResponseTemp = resp.data
         sendEvent( name: "temperature", value: resp.data.toFloat(), unit: location.getTemperatureScale() )
@@ -60,6 +66,9 @@ def GetTempData( resp, data ) {
 }
 
 def GetHumiData( resp, data ) {
+	if (resp == null || resp.class != hubitat.scheduling.AsyncResponse) {
+		return
+	}
 	if( resp.getStatus() == 200 ) {
         state.ResponseHumi = resp.data
 	    sendEvent( name: "relativehumidity", value: resp.data.toFloat() )
