@@ -5,13 +5,13 @@ metadata {
     author: "levvp" )
     {
         capability "Sensor"
-	capability "Refresh"
-	capability "Temperature Measurement"
-	capability "RelativeHumidity Measurement"
+    	capability "Refresh"
+    	capability "Temperature Measurement"
+    	capability "RelativeHumidity Measurement"
         attribute "temperature", "float"
         attribute "relativehumidity", "float"
     }
-	preferences{
+	preferences {
 		section{
 			input( type: "string", name: "NodeURL", title: "Node URL", required: true, defaultValue: "192.168.7.2" )
 			input( type: "enum", name: "RefreshRate", title: "Data Refresh Rate (in minutes)", required: true, multiple: false, options: [ [ "1" : "1" ], [ "5" : "5" ] ], defaultValue: "1" )
@@ -74,7 +74,7 @@ def GetHumiData( resp, data ) {
 	if( resp.getStatus() == 200 ) {
 		state.ResponseHumi = resp.data
 		if( resp.data.isNumber() ) {
-			sendEvent( name: "relativehumidity", value: resp.data.toFloat() )
+			sendEvent( name: "relativehumidity", value: resp.data.toFloat(), unit: "%" )
 		}	
 	} else {
 		log.error "${device.displayName} Error connecting: ${resp.status}"
