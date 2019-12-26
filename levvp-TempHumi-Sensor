@@ -5,17 +5,17 @@ metadata {
     author: "levvp" )
     {
         capability "Sensor"
-		capability "Refresh"
-		capability "Temperature Measurement"
-		capability "RelativeHumidity Measurement"
+	capability "Refresh"
+	capability "Temperature Measurement"
+	capability "RelativeHumidity Measurement"
         attribute "temperature", "float"
         attribute "relativehumidity", "float"
     }
 	preferences{
 		section{
-		    input( type: "string", name: "NodeURL", title: "Node URL", required: true, defaultValue: "192.168.7.2" )
-		    input( type: "enum", name: "RefreshRate", title: "Data Refresh Rate (in minutes)", required: true, multiple: false, options: [ [ "1" : "1" ], [ "5" : "5" ] ], defaultValue: "1" )
-		    input( type: "string", name: "SensorNo", title: "Sensor Number", required: true, defaultValue: "0" )
+			input( type: "string", name: "NodeURL", title: "Node URL", required: true, defaultValue: "192.168.7.2" )
+			input( type: "enum", name: "RefreshRate", title: "Data Refresh Rate (in minutes)", required: true, multiple: false, options: [ [ "1" : "1" ], [ "5" : "5" ] ], defaultValue: "1" )
+			input( type: "string", name: "SensorNo", title: "Sensor Number", required: true, defaultValue: "0" )
 		}
 	}
 }
@@ -47,9 +47,9 @@ def GetList( resp, data ) {
 		return
 	}
 	if( resp.getStatus() == 200 ) {
-        state.Sensors = resp.data
+        	state.Sensors = resp.data
 	} else {
-        log.error "${device.displayName} Error connecting: ${resp.status}"
+        	log.error "${device.displayName} Error connecting: ${resp.status}"
 	}
 }
 
@@ -58,10 +58,12 @@ def GetTempData( resp, data ) {
 		return
 	}
 	if( resp.getStatus() == 200 ) {
-        state.ResponseTemp = resp.data
-        sendEvent( name: "temperature", value: resp.data.toFloat(), unit: location.getTemperatureScale() )
+        	state.ResponseTemp = resp.data
+		if( resp.data.isNumber() ) {
+        		sendEvent( name: "temperature", value: resp.data.toFloat(), unit: location.getTemperatureScale() )
+		}
 	} else {
-        log.error "${device.displayName} Error connecting: ${resp.status}"
+        	log.error "${device.displayName} Error connecting: ${resp.status}"
 	}
 }
 
@@ -70,8 +72,10 @@ def GetHumiData( resp, data ) {
 		return
 	}
 	if( resp.getStatus() == 200 ) {
-        state.ResponseHumi = resp.data
-	    sendEvent( name: "relativehumidity", value: resp.data.toFloat() )
+		state.ResponseHumi = resp.data
+		if( resp.data.isNumber() ) {
+			sendEvent( name: "relativehumidity", value: resp.data.toFloat() )
+		}	
 	} else {
 		log.error "${device.displayName} Error connecting: ${resp.status}"
 	}
