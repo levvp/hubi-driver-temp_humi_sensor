@@ -2,7 +2,8 @@ metadata {
     definition (
     name: "levvp Temp/Humi Sensor",
     namespace: "levvp",
-    author: "levvp" )
+    author: "levvp",
+    importUrl: "https://raw.githubusercontent.com/levvp/hubi-driver-temp_humi_sensor/master/levvp-TempHumi-Sensor" )
     {
         capability "Sensor"
     	capability "Refresh"
