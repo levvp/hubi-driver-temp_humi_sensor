@@ -9,8 +9,8 @@ metadata {
     	capability "Refresh"
     	capability "Temperature Measurement"
     	capability "RelativeHumidity Measurement"
-        attribute "temperature", "float"
-        attribute "relativehumidity", "float"
+        attribute "temperature", "number"
+        attribute "humidity", "integer"
     }
 	preferences {
 		section{
@@ -27,18 +27,22 @@ def installed()
 }
 
 def updated(){
-    asynchttpGet( "GetList", [ uri: "${NodeURL}/sensors", contentType: "text/plain" ] )
     unschedule()
 	if( RefreshRate == "1" ){
-		runEvery1Minute( refresh )
+		runEvery1Minute( refreshAuto )
 	}
 	if( RefreshRate == "5" ){
-		runEvery5Minutes( refresh )
+		runEvery5Minutes( refreshAuto )
 	}
     refresh()
 }
 
 def refresh() {
+    asynchttpGet( "GetList", [ uri: "${NodeURL}/sensors", contentType: "text/plain" ] )
+    refreshAuto()
+}
+
+def refreshAuto() {
     asynchttpGet( "GetTempData", [ uri: "${NodeURL}/sensor/temp/${SensorNo}" ] )
     asynchttpGet( "GetHumiData", [ uri: "${NodeURL}/sensor/humi/${SensorNo}" ] )
 }
@@ -48,9 +52,9 @@ def GetList( resp, data ) {
 		return
 	}
 	if( resp.getStatus() == 200 ) {
-        	state.Sensors = resp.data
+		state.Sensors = resp.data
 	} else {
-        	log.error "${device.displayName} Error connecting: ${resp.status}"
+		log.error "${device.displayName} Error connecting: ${resp.status}"
 	}
 }
 
@@ -59,12 +63,12 @@ def GetTempData( resp, data ) {
 		return
 	}
 	if( resp.getStatus() == 200 ) {
-        	state.ResponseTemp = resp.data
+       	state.ResponseTemp = resp.data
 		if( resp.data.isNumber() ) {
-        		sendEvent( name: "temperature", value: resp.data.toFloat(), unit: location.getTemperatureScale() )
+       		sendEvent( name: "temperature", value: resp.data.toDouble(), unit: "F" )
 		}
 	} else {
-        	log.error "${device.displayName} Error connecting: ${resp.status}"
+		log.error "${device.displayName} Error connecting: ${resp.status}"
 	}
 }
 
@@ -75,7 +79,7 @@ def GetHumiData( resp, data ) {
 	if( resp.getStatus() == 200 ) {
 		state.ResponseHumi = resp.data
 		if( resp.data.isNumber() ) {
-			sendEvent( name: "relativehumidity", value: resp.data.toFloat(), unit: "%" )
+			sendEvent( name: "humidity", value: resp.data.toInteger(), unit: "%" )
 		}	
 	} else {
 		log.error "${device.displayName} Error connecting: ${resp.status}"
